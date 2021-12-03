@@ -1,0 +1,323 @@
+<?php 
+    $email     = $_GET['email']; 
+    $firstName = $_GET['firstName']; 
+    $lastName  = $_GET['lastName']; 
+
+    if ($email == 0){
+        header('Location: index.php');
+    }
+?>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Home</title>
+<meta name="keywords" content="" />
+<meta name="description" content="" />
+<link href="css/templatemo_style.css" rel="stylesheet" type="text/css" />
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script type="text/javascript" src="js/jquery-ui.min.js"></script> 
+<script type="text/javascript" src="js/showhide.js"></script> 
+<script type="text/JavaScript" src="js/jquery.mousewheel.js"></script> 
+
+<link rel="stylesheet" type="text/css" href="css/ddsmoothmenu.css" />
+
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script type="text/javascript" src="js/ddsmoothmenu.js">
+
+</script>
+
+<script type="text/javascript">
+
+ddsmoothmenu.init({
+	mainmenuid: "templatemo_menu", //menu DIV id
+	orientation: 'h', //Horizontal or vertical menu: Set to "h" or "v"
+	classname: 'ddsmoothmenu', //class added to menu's outer DIV
+	//customtheme: ["#1c5a80", "#18374a"],
+	contentsource: "markup" //"markup" or ["container_id", "path_to_menu_file"]
+})
+
+</script> 
+
+
+<script type="text/JavaScript" src="js/cloud-carousel.1.0.5.js"></script>
+ 
+<script type="text/javascript">
+$(document).ready(function(){
+						   
+
+	$("#carousel1").CloudCarousel(		
+		{			
+			reflHeight: 40,
+			reflGap: 2,
+			titleBox: $('#da-vinci-title'),
+			altBox: $('#da-vinci-alt'),
+			//buttonLeft: $('#slider-left-but'),
+			//buttonRight: $('#slider-right-but'),
+			yRadius: 30,
+			xPos: 480,
+			yPos: 32,
+			speed:0.15,
+			autoRotate: "yes",
+			autoRotateDelay: 2500
+		}
+	);
+});
+ 
+</script>
+
+</head>
+
+<body id="home" >
+<div id="templatemo_header_wrapper">
+
+<div id="templatemo_menu" class="ddsmoothmenu"><ul></ul></div> </div>	
+
+
+<div id="templatemo_slider">
+	<!-- This is the container for the carousel. -->
+    <div id = "carousel1" style="width:960px; height:280px;background:none;overflow:scroll; margin-top: 20px">            
+        <!-- All images with class of "cloudcarousel" will be turned into carousel items -->
+        <!-- You can place links around these images -->
+        <a href="#" rel="lightbox"><img class="cloudcarousel" src="images/slider/01.jpg" alt="CSS Templates 1" title="Website Templates 1" /></a>
+        <a href="#" rel="lightbox"><img class="cloudcarousel" src="images/slider/02.jpg" alt="CSS Templates 2" title="Website Templates 2" /></a>
+        <a href="#" rel="lightbox"><img class="cloudcarousel" src="images/slider/03.jpg" alt="CSS Templates 3" title="Website Templates 3" /></a>
+        <a href="#" rel="lightbox"><img class="cloudcarousel" src="images/slider/04.jpg" alt="CSS Templates 4" title="Website Templates 4" /></a>
+        <a  href="#" rel="lightbox"><img class="cloudcarousel" src="images/slider/05.jpg" alt="Flash Templates 1" title="Flash Templates 1" /></a>
+        <a href="#" rel="lightbox"><img class="cloudcarousel" src="images/slider/06.jpg" alt="Flash Templates 2" title="Flash Templates 2" /></a>
+        <a href="#" rel="lightbox"><img class="cloudcarousel" src="images/slider/07.jpg" alt="Flash Templates 3" title="Flash Templates 3" /></a>
+        <a href="#" rel="lightbox"><img class="cloudcarousel" src="images/slider/08.jpg" alt="Flash Templates 4" title="Flash Templates 4" /></a>
+    </div>
+</div>
+
+
+<div id="templatemo_main"></div>
+<script>
+    function verdetalle(id){
+        $.ajax({
+            beforeSend: function(xhr){
+                xhr.setRequestHeader('Authorization', 'Bearer '+ localStorage.getItem('token'));
+                xhr.setRequestHeader('Content-type', 'application/json');
+
+                location.href="detallepelicula.php?id="+id
+            },
+        });  
+    }
+    var x_lastName = false;  
+    var x_firstname = false;
+    var x2= false;
+    var x = false;
+   
+    function get_yo(){
+        return x_lastName;  
+        return x_firstname;
+    }
+
+    function getPelicula_estreno(){
+        return x2;  
+    }
+
+
+    function getPelicula(){
+        return x;  
+    }
+
+    //trae peliculas populares
+    $(document).ready(function(){
+        Inicio_Pelicula_estreno();
+        Inicio_Pelicula();
+        Inicio_yo();
+        
+    })
+    
+   function Inicio_Pelicula_estreno(){
+        Trae_Pelicula_estreno(1, function(){
+            var html = '<h2>PELICULAS ESTRENO</h2>';
+            $.each(getPelicula_estreno(), function(i, val){
+
+            });
+            //$('#templatemo_main').html(html);
+        })
+    }
+
+    function Trae_Pelicula_estreno(page, callback){
+        $.ajax({
+            url: 'http://161.35.140.236:9005/api/movies/now_playing',
+            beforeSend: function(xhr){
+                xhr.setRequestHeader('Authorization', 'Bearer '+ localStorage.getItem('token'));
+                xhr.setRequestHeader('Content-type', 'application/json');
+            },
+            type: 'GET',
+            dataType: 'JSON',
+            data: {page: page},
+            success: function(Json){
+                Json = JSON.parse(Json);
+                x2 = Json.data;
+                z2 = Json.imageBaseUrl;
+
+                callback();
+            },
+            error: function(e){
+                if(e.status == 401){
+                    if(localStorage.getItem('token')){
+                        Refresh(function(exito){
+                            if(exito){
+                                Inicio_Pelicula_estreno();
+                            }
+                        });
+                    }
+                }
+                else if(e.status != 201){
+                    alert(e.responseJSON.message);
+                    callback();
+                }
+            }
+        });
+    }
+    // hasta aqui trae las estreno
+
+
+//peliculas populares
+    function Inicio_Pelicula(){
+        Trae_Pelicula(1, function(){
+            var html = '<h2><font color="white">PELICULAS MAS POPULARES</font></h2>';
+            $.each(getPelicula(), function(i, val){
+                
+                html += '<div class="col one_fourth gallery_box" > '+
+                        '    <a href="#" rel="lightbox[portfolio]" onclick="verdetalle('+val.id+');">'+
+                        '       <img src="'+ z  +''+ val.backdrop_path  +'" alt="'+val.title+'" class="image_frame" " width="220" height="200"/>'+
+                        '    </a>'+
+                        '  <p><font color="white">'+ val.original_title +'</font></p>'+
+
+                        
+                        '</div>';
+            });
+            $('#templatemo_main').html(html);
+        })
+    }
+
+    function Trae_Pelicula(page, callback){
+        $.ajax({
+            url: 'http://161.35.140.236:9005/api/movies/popular',
+            beforeSend: function(xhr){
+                xhr.setRequestHeader('Authorization', 'Bearer '+ localStorage.getItem('token'));
+                xhr.setRequestHeader('Content-type', 'application/json');
+            },
+            type: 'GET',
+            dataType: 'JSON',
+            data: {page: page},
+            success: function(Json){
+                Json = JSON.parse(Json);
+                x = Json.data;
+                z = Json.imageBaseUrl;
+
+                callback();
+            },
+            error: function(e){
+                if(e.status == 401){
+                    if(localStorage.getItem('token')){
+                        Refresh(function(exito){
+                            if(exito){
+                                Inicio_Pelicula();
+                            }
+                        });
+                    }
+                }
+                else if(e.status != 201){
+                    alert(e.responseJSON.message);
+                    callback();
+                }
+            }
+        });
+    }
+    // hasta aqui trae las populares
+
+
+    //informacion usuario
+
+    function Inicio_yo(){
+        Trae_informacion_yo(1, function(){
+
+            var html = '<ul align="right"> '+
+        '<h3><font color="white">Hola '+ x_firstname  +' '+ x_lastName  +'<img src="../img/user.png" width="40"></img></font></h3>'+
+        '</ul>' +
+        '<ul align="left"><h2><font color="white">Películas en estreno</font></h2></ul>'+
+        '<div id="templatemo_menu" class="ddsmoothmenu"><ul></ul></div> '
+        
+
+
+
+        $('#templatemo_header_wrapper').html(html);
+
+        })
+    }
+
+    function Trae_informacion_yo(page, callback){
+        $.ajax({
+            url: 'http://161.35.140.236:9005/api/user/me',
+            beforeSend: function(xhr){
+                xhr.setRequestHeader('Authorization', 'Bearer '+ localStorage.getItem('token'));
+                xhr.setRequestHeader('Content-type', 'application/json');
+            },
+            type: 'GET',
+            dataType: 'JSON',
+            data: {page: page},
+            success: function(Json){
+                Json = JSON.parse(Json);
+                x_firstname = Json.data.firstName;
+                x_lastName = Json.data.lastName;
+
+                callback();
+            },
+            error: function(e){
+                if(e.status == 401){
+                    if(localStorage.getItem('token')){
+                        Refresh(function(exito){
+                            if(exito){
+                                Inicio_yo();
+                            }
+                        });
+                    }
+                }
+                else if(e.status != 201){
+                    alert(e.responseJSON.message);
+                    callback();
+                }
+            }
+        });
+    }
+    // hasta aqui informacion usuario
+
+
+
+
+
+
+    function Refresh(callback){
+        $.ajax({
+            url: 'http://161.35.140.236:9005/api/auth/refresh',
+            type: 'POST',
+            dataType: 'JSON',
+            data: {refresh_token: localStorage.getItem('refresh_token')},
+            success: function(Json){
+                Json = JSON.parse(Json);
+                localStorage.setItem('token', Json.data.payload.token);
+                callback(true)
+            },
+            error: function(e){
+                callback(false)
+                if(e.status != 201){
+                    localStorage.clear();
+                    alert(e.responseJSON.message);
+                }
+            }
+        });
+    }
+
+            
+
+</script>
+
+</body>
+</html>
